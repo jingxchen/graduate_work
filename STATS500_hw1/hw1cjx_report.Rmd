@@ -1,0 +1,103 @@
+---
+title: "Hw1:Teengamb Data Exploratory data analysis"
+author: "Jingxian Chen"
+date: "Sep 14th, 2019"
+output: pdf_document
+---
+
+```{r get_data, echo=FALSE,output = FALSE,warning=FALSE,message=FALSE}
+library(faraway)
+library(ggplot2)
+library(plyr)
+library(lattice)
+library(Rmisc)
+
+data(teengamb)
+teengamb$sex <- factor(teengamb$sex)
+levels(teengamb$sex) <- c("male","female")
+```
+## 1. Numerical Summaries:
+```{r summ,fig.width=6,fig.height=6}
+summary(teengamb)
+```
+
+According to the summary above, 
+
+(1) we get 9 more male samples than female. 
+
+(2) the mean of "income" variable is 4.642 pounds per week, the median of it is 3.250 pounds per week.
+
+(3) the mean of "gamble" variable is 19.3 pounds per year, the median of it is 6.0 pounds per year.
+
+I think the reason why the mean values of these two variables are much larger than the median is that they both have outliers which get high value. I will use graphical summary to prove my point.
+
+---
+
+## 2. The number of different values of verbal:
+```{r verb}
+length(unique(teengamb$verbal))
+```
+
+So there are 9 different values of "verbal" variable.
+
+---
+
+## 3. The row numbers of the verbal outlier observations:
+```{r outlier_verb}
+which(teengamb$verbal<5)
+```
+
+---
+
+## 4. Graphical Summaries:
+
+### 4.1 Boxplots of 4 variables(except "sex")
+```{r boxplot,echo = FALSE,fig.height=3}
+p1 <- ggplot(teengamb,aes(x = 1,y = teengamb$status))+geom_boxplot(outlier.colour = "red", fill = 'gray',color = 'black')+theme_classic()+ labs(title="Boxplot of status",x=" ", y = "Status score")+xlim(0, 2)+ylim(min(teengamb$status, 0)*1.2, max(teengamb$status)*1.2)+theme(axis.text.x = element_blank())
+p2 <- ggplot(teengamb,aes(x = 1,y = teengamb$income))+geom_boxplot(outlier.colour = "red", fill = 'blue',color = 'black',alpha=0.2)+theme_classic()+ labs(title="Boxplot of income",x=" ", y = "Income per week")+xlim(0, 2)+ylim(min(teengamb$income, 0)*1.2, max(teengamb$income)*1.2)+theme(axis.text.x = element_blank())
+p3 <- ggplot(teengamb,aes(x = 1,y = teengamb$verbal))+geom_boxplot(outlier.colour = "red", fill = 'brown',color = 'black')+theme_classic()+ labs(title="Boxplot of verbal",x=" ", y = "Verbal score")+xlim(0, 2)+ylim(min(teengamb$verbal, 0)*1.2, max(teengamb$verbal)*1.2)+theme(axis.text.x = element_blank())
+p4 <- ggplot(teengamb,aes(x = 1,y = teengamb$gamble))+geom_boxplot(outlier.colour = "red", fill = 'orange',color = 'black')+theme_classic()+ labs(title="Boxplot of gamble",x=" ", y = "Gamble expenditure")+xlim(0, 2)+ylim(min(teengamb$gamble, 0)*1.2, max(teengamb$gamble))+theme(axis.text.x = element_blank())
+
+multiplot(p1,p2,p3,p4,cols=2)
+```
+
+As we can see from the boxlpots above, there are some outliers exist in three variables: verbal, income and gamble. Based on these, we can conclude that if a person' s verbal score is less than 5, we can consider this sample is an outlier. 
+
+### 4.2 Histograms of 4 variables(except "sex")
+```{r hist,echo=FALSE,fig.height=4}
+p1 <- ggplot(data=teengamb, aes(teengamb$status)) + 
+  geom_histogram(binwidth = 10,fill = "blue",col = "red", alpha=0.2) +  
+  labs(title="Histogram of status variable", x="Status variable", y="Frequency")
+p2 <- ggplot(data=teengamb, aes(teengamb$income)) + 
+  geom_histogram(binwidth = 2.5, fill = "blue",col = "red", alpha=0.2) +  
+  labs(title="Histogram of income variable", x="Income variable", y="Frequency")
+p3 <- ggplot(data=teengamb, aes(teengamb$verbal)) + 
+  geom_histogram(binwidth = 5, fill = "blue",col = "red", alpha=0.2) +  
+  labs(title="Histogram of verbal variable", x="Verbal variable", y="Frequency")
+p4 <- ggplot(data=teengamb, aes(teengamb$gamble)) + 
+  geom_histogram(binwidth = 20, fill = "blue",col = "red", alpha=0.2) +  
+  labs(title="Histogram of gamble variable", x="Gamble variable", y="Frequency")
+multiplot(p1,p2,p3,p4,cols=2)
+```
+
+### 4.3 Compare two variables
+```{r 2var,echo=FALSE,fig.height=4}
+p1 <- ggplot(data=teengamb,aes(x = teengamb$status, y = teengamb$verbal,color=teengamb$sex))+geom_point(aes(shape=teengamb$sex))+labs(title = "status vs verbal",x="status",y="verbal")+stat_smooth(aes(linetype=teengamb$sex),method = lm,se=FALSE)
+p2 <- ggplot(data=teengamb,aes(x = teengamb$status, y = teengamb$gamble,color=teengamb$sex))+geom_point(aes(shape=teengamb$sex))+labs(title = "status vs gamble",x="status",y="gamble")+stat_smooth(aes(linetype=teengamb$sex),method = lm,se=FALSE)
+p3 <- ggplot(data=teengamb,aes(x=teengamb$sex,y=teengamb$income))+geom_boxplot(outlier.colour = "red", fill = 'blue',color = 'black',alpha=0.2,outlier.size = 5)+theme_classic()+ labs(title="income vs sex",x="Sex", y = "Income per week")+ylim(min(teengamb$income, 0)*1.2, max(teengamb$income)*1.2)
+p4 <- ggplot(data=teengamb,aes(x=teengamb$sex,y=teengamb$gamble))+geom_boxplot(outlier.colour = "red", fill = 'green',color = 'black',alpha=0.2,outlier.size = 5)+theme_classic()+ labs(title="gamble vs sex",x="Sex", y = "Gamble exoenditure per year")+ylim(min(teengamb$gamble, 0)*1.2, max(teengamb$gamble))
+multiplot(p1,p3,p2,p4,cols=2)
+```
+
+Therefore, when comparing two variable simultaneously, we can get some deduction from the above plot:
+
+(1) Whatever male or female observations, people get a high status score tend to also get a high verbal score.
+
+(2) Consider the male observations, people get a high status score tend to spend less money on gambling. While female observations always spend few money on gambling whatever their status scores high or low.
+
+(3) Male and female observations tend to get similar income amount per week.
+
+(4) Male observations tend to spend more money on gambling per year than female observations.
+
+
+

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+###
+#title: question 2
+#author: jingxian chen
+#date: Sep 14th, 2019
+###
+
+#def parameters:
+## the first parameter is the file path which contains the data, the second parameter is the regular expression or the "grep" command parameter.
+
+file=$1
+expression=$2
+
+## in the first case, without a slash, it is a regular expression to extract the target column headers, so we need to add a '-E' parameter to the "grep" command.
+## in the second case, with a slash, it doesn' t make sense to consider it as a regular expression, that' s a "grep" command parameter itself.
+## So I compared the length of the results from both cases to decide which command I should choose to "cut" and output to the recs_weight.csv file.  
+
+declare cols1=$(head -1 ${file} | sed 's/,/\n/g'| grep -n -E ${expression} | cut -f1 -d":" | paste -s -d,)
+declare cols2=$(head -1 ${file} | sed 's/,/\n/g'| grep -n ${expression} | cut -f1 -d":" | paste -s -d,)
+c1="echo $cols1"
+c2="echo $cols2"
+if [ "$c1" ">" "$c2" ]; then
+cut -f$cols1 -d"," ${file};
+else 
+cut -f$cols2 -d"," ${file}; 
+fi 
